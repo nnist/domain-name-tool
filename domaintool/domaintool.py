@@ -7,6 +7,8 @@ import os
 import time
 import subprocess
 
+# TODO Make domain hack optional, also allow 'website.com' for example
+
 class DomainChecker():
     """Get domain hacks from a dictionary and test them for availability."""
     def __init__(self, length_min, length_max, tld, dict_file="dictionary.txt",
