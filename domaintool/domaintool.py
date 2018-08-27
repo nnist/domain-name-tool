@@ -39,27 +39,23 @@ class DomainChecker():
 
         return tld_list
 
-    def find_tlds(self, word):
-        """Take a word, find fitting TLDs and return them."""
-        tlds = []
-        tld_list = self.get_tld_list()
+    def get_domains(self, word, tld_list):
+        """Take a word, find fitting TLDs and return them.
+
+        >>> find_tlds('scuba')
+        ['scu.ba']
+
+        >>> find_tlds('cathode')
+        ['catho.de']
+        """
+        domains = []
         for tld in tld_list:
             if word.endswith(tld):
-                tlds.append(tld)
+                if len(word) >= self.length_min\
+                and len(word) <= self.length_max:
+                    domain = word[0:-(len(tld))] + "." + tld
+                    domains.append(domain)
 
-        return tlds
-
-    def get_domains(self, tld):
-        """Load dictionary and return lines ending with tld"""
-        domains = []
-        with open(self.dict_file) as f:
-            for line in f:
-                line = line[0:-1].lower()
-                if(line.endswith(tld)) and '-' not in line:
-                    if len(line) >= self.length_min\
-                    and len(line) <= self.length_max:
-                        domain = line[0:-(len(tld))] + "." + tld
-                        domains.append(domain)
         return domains
 
     def check_domains(self, domains):
@@ -157,21 +153,30 @@ def main(argv):
                                    chars, args.delay)
     domains = []
     
+    tld_list = domain_checker.get_tld_list()
+    if args.tld != 'any':
+        if args.tld in tld_list:
+            tld_list = [args.tld]
+        else:
+            print('error: invalid TLD')
+            exit(1)
+    
     if args.tld == 'any':
         print('Finding words ending with any TLD in {}.'.format(args.file))
-        tld_list = domain_checker.get_tld_list()
-        for tld in enumerate(tld_list):
-            domains_ = domain_checker.get_domains(tld[1])
-            update_progress_bar(tld[0], len(tld_list))
+    else:
+        print('Finding words ending with .{} TLD in {}.'.format(args.tld, args.file))
+    
+    with open(args.file, 'r') as f:
+        lines = f.read().splitlines()
+        for line in enumerate(lines):
+            domains_ = domain_checker.get_domains(line[1], tld_list)
+            update_progress_bar(line[0], len(lines))
             if domains_:
                 for domain in domains_:
                     domains.append(domain)
-
-        update_progress_bar(len(tld_list), len(tld_list))
-        print('Found {} possible domains.'.format(len(domains)))
-    else:
-        domains = domain_checker.get_domains(args.tld)
-
+    
+    update_progress_bar(len(lines), len(lines))
+    print('Found {} possible domains.'.format(len(domains)))
     domain_checker.check_domains(domains)
 
 if __name__ == "__main__":
