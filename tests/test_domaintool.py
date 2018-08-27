@@ -27,6 +27,22 @@ class DomaintoolTest(unittest.TestCase):
             output = output.getvalue().split('\n')
             assert output[0] == 'Checking 7 domains...'
     
+    def test_get_tld_list_returns_list_of_proper_length(self):
+        domain_checker = DomainChecker(3, 4, 'io', delay=1.5)
+        tlds = domain_checker.get_tld_list()
+        # 1541 TLDs in total at 27 aug 2018. This number will only increase,
+        # so testing for at least 1500 should be safe.
+        assert len(tlds) > 1500
+
+    def test_find_tlds_returns_correct_tlds(self):
+        domain_checker = DomainChecker(3, 4, 'io', delay=1.5)
+        tlds = domain_checker.find_tlds('sadnessparty')
+        assert tlds == ['party']
+        tlds = domain_checker.find_tlds('cathode')
+        assert tlds == ['de']
+        tlds = domain_checker.find_tlds('aerobe')
+        assert tlds == ['be']
+
     def test_cli_help_prints_correct_output(self):
         with patch('sys.stdout', new=StringIO()) as output:
             process = subprocess.run(['python3 domaintool/domaintool.py -h'],

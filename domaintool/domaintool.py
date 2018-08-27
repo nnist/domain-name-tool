@@ -18,6 +18,25 @@ class DomainChecker():
         self.chars = chars
         self.delay = delay
 
+    def get_tld_list(self):
+        tlds = []
+        with open('top-level-domains.txt', 'r') as f:
+            lines = f.read().splitlines()
+            for line in lines:
+                tlds.append(line.lower())
+
+        return tlds
+
+    def find_tlds(self, word):
+        """Take a word, find fitting TLDs and return them."""
+        tlds = []
+        tld_list = self.get_tld_list()
+        for tld in tld_list:
+            if word.endswith(tld):
+                tlds.append(tld)
+
+        return tlds
+
     def get_domains(self):
         """Load dictionary and return lines ending with tld"""
         domains = []
