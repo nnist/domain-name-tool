@@ -31,6 +31,7 @@ class DomainChecker():
         self.delay = delay
 
     def get_tld_list(self):
+        """Return a list with all possible top level domains."""
         tld_list = []
         with open('top-level-domains.txt', 'r') as f:
             lines = f.read().splitlines()
