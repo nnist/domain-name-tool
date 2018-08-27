@@ -136,12 +136,8 @@ def main(argv):
     )
     parser.add_argument(
         "--tld",
-        help="Top level domain to use"
-    )
-    parser.add_argument(
-        "--find",
-        help="Find fitting TLDs for words in dictionary",
-        action='store_true'
+        help="Top level domain to use. 'any' by default.",
+        default='any'
     )
     parser.add_argument(
         "-f",
@@ -165,9 +161,7 @@ def main(argv):
                                    chars, delay)
     domains = []
     
-    if args.tld:
-        domains = domain_checker.get_domains(args.tld)
-    elif args.find:
+    if args.tld == 'any':
         print('Finding words ending with any TLD in {}.'.format(dict_file))
         domain_checker = DomainChecker(length_min, length_max, dict_file,
                                        chars, delay)
@@ -182,8 +176,7 @@ def main(argv):
         update_progress_bar(len(tld_list), len(tld_list))
         print('Found {} possible domains.'.format(len(domains)))
     else:
-        print('error: no mode supplied')
-        exit(1)
+        domains = domain_checker.get_domains(args.tld)
 
     domain_checker.check_domains(domains)
 
