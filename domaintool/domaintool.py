@@ -151,20 +151,14 @@ def main(argv):
     )
 
     args = parser.parse_args(argv)
-    length_min = args.min
-    length_max = args.max
-    dict_file = args.file
     chars = "abcdefghijklmnopqrstuvwxyz"
-    delay = args.delay
 
-    domain_checker = DomainChecker(length_min, length_max, dict_file,
-                                   chars, delay)
+    domain_checker = DomainChecker(args.min, args.max, args.file,
+                                   chars, args.delay)
     domains = []
     
     if args.tld == 'any':
-        print('Finding words ending with any TLD in {}.'.format(dict_file))
-        domain_checker = DomainChecker(length_min, length_max, dict_file,
-                                       chars, delay)
+        print('Finding words ending with any TLD in {}.'.format(args.file))
         tld_list = domain_checker.get_tld_list()
         for tld in enumerate(tld_list):
             domains_ = domain_checker.get_domains(tld[1])
