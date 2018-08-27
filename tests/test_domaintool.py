@@ -27,8 +27,7 @@ class DomaintoolTest(unittest.TestCase):
             output = output.getvalue().split('\n')
             assert output[0] == 'Checking 7 domains...'
     
-    def test_cli(self):
-        """Test the cli."""
+    def test_cli_help_prints_correct_output(self):
         with patch('sys.stdout', new=StringIO()) as output:
             process = subprocess.run(['python3 domaintool/domaintool.py -h'],
                                      shell=True,
@@ -38,7 +37,10 @@ class DomaintoolTest(unittest.TestCase):
             assert process.returncode == 0
             process_output = process.stdout.split(b'\n')
             assert process_output[0] == b'usage: domaintool.py [-h] [-f FILE] [-d DELAY] min max tld'
-    
+
+    def test_cli(self):
+        """Test the cli."""
+        with patch('sys.stdout', new=StringIO()) as output:
             process = subprocess.run(['python3 domaintool/domaintool.py 13 13 be -d 0.1'],
                                      shell=True,
                                      timeout=10,
