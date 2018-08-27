@@ -7,13 +7,25 @@ import os
 import time
 import subprocess
 
+def update_progress_bar(current, total):
+    bar_length = 10
+    progress = current / total
+    blocks = int(round(bar_length * progress))
+    text = '\rProgress: {} {}/{} {:.1f}%'\
+            .format('▇' * blocks + '-' * (bar_length - blocks),
+                    current, total, progress * 100)
+    if progress == 1:
+        text += '\n'
+
+    sys.stdout.write(text)
+    sys.stdout.flush()
+
 class DomainChecker():
     """Get domain hacks from a dictionary and test them for availability."""
-    def __init__(self, length_min, length_max, tld, dict_file="dictionary.txt",
+    def __init__(self, length_min, length_max, dict_file="dictionary.txt",
                  chars="abcdefghijklmnopqrstuvwxyz", delay=2.0):
         self.length_min = length_min
         self.length_max = length_max
-        self.tld = tld
         self.dict_file = dict_file
         self.chars = chars
         self.delay = delay
@@ -37,16 +49,16 @@ class DomainChecker():
 
         return tlds
 
-    def get_domains(self):
+    def get_domains(self, tld):
         """Load dictionary and return lines ending with tld"""
         domains = []
         with open(self.dict_file) as f:
             for line in f:
                 line = line[0:-1].lower()
-                if(line.endswith(self.tld)) and '-' not in line:
+                if(line.endswith(tld)) and '-' not in line:
                     if len(line) >= self.length_min\
                     and len(line) <= self.length_max:
-                        domain = line[0:-(len(self.tld))] + "." + self.tld
+                        domain = line[0:-(len(tld))] + "." + tld
                         domains.append(domain)
         return domains
 
@@ -123,9 +135,13 @@ def main(argv):
         default=5, type=int
     )
     parser.add_argument(
-        "tld",
-        help="Top level domain to use",
-        default=".com"
+        "--tld",
+        help="Top level domain to use"
+    )
+    parser.add_argument(
+        "--find",
+        help="Find fitting TLDs for words in dictionary",
+        action='store_true'
     )
     parser.add_argument(
         "-f",
@@ -141,14 +157,34 @@ def main(argv):
     args = parser.parse_args(argv)
     length_min = args.min
     length_max = args.max
-    tld = args.tld
     dict_file = args.file
     chars = "abcdefghijklmnopqrstuvwxyz"
     delay = args.delay
 
-    domain_checker = DomainChecker(length_min, length_max, tld, dict_file,
+    domain_checker = DomainChecker(length_min, length_max, dict_file,
                                    chars, delay)
-    domains = domain_checker.get_domains()
+    domains = []
+    
+    if args.tld:
+        domains = domain_checker.get_domains(args.tld)
+    elif args.find:
+        print('Finding words ending with any TLD in {}.'.format(dict_file))
+        domain_checker = DomainChecker(length_min, length_max, dict_file,
+                                       chars, delay)
+        tld_list = domain_checker.get_tld_list()
+        for tld in enumerate(tld_list):
+            domains_ = domain_checker.get_domains(tld[1])
+            update_progress_bar(tld[0], len(tld_list))
+            if domains_:
+                for domain in domains_:
+                    domains.append(domain)
+
+        update_progress_bar(len(tld_list), len(tld_list))
+        print('Found {} possible domains.'.format(len(domains)))
+    else:
+        print('error: no mode supplied')
+        exit(1)
+
     domain_checker.check_domains(domains)
 
 if __name__ == "__main__":
