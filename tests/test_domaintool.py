@@ -3,7 +3,12 @@ import unittest
 from unittest.mock import patch
 from io import StringIO
 import subprocess
+import logging as log
+import sys
 from domaintool.domaintool import DomainChecker
+
+logger = log.getLogger()
+logger.level = log.DEBUG
 
 class DomaintoolTest(unittest.TestCase):
     def test_check_domain(self):
@@ -48,7 +53,7 @@ class DomaintoolTest(unittest.TestCase):
                                      stderr=subprocess.PIPE, check=True)
             assert process.returncode == 0
             process_output = process.stdout.split(b'\n')
-            assert process_output[0] == b'usage: domaintool.py [-h] [--tld TLD] [-f FILE] [-d DELAY] min max'
+            assert process_output[0] == b'usage: domaintool.py [-h] [-v] [--tld TLD] [-f FILE] [-d DELAY] min max'
 
     def test_cli(self):
         """Test the cli."""
@@ -59,6 +64,8 @@ class DomaintoolTest(unittest.TestCase):
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE, check=True)
             assert process.returncode == 0
-            process_output = process.stdout.split(b'\n')
-            assert process_output[0] == b'Finding words ending with .be TLD in dictionary.txt.'
-            assert process_output[2] == b'Found 9 possible domains.'
+            
+            with open('log.txt', 'r') as f:
+                lines = f.read().splitlines()
+                assert 'INFO: Finding words ending with .be TLD in dictionary.txt.' in lines[0]
+                assert 'INFO: Checking 9 domains...' in lines[2]

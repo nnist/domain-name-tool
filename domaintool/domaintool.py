@@ -6,6 +6,7 @@ import sys
 import os
 import time
 import subprocess
+import logging as log
 
 def update_progress_bar(current, total):
     bar_length = 10
@@ -61,35 +62,30 @@ class DomainChecker():
 
     def check_domains(self, domains):
         """Check a list of domains for availability."""
-        print("Checking %s domains..." % len(domains))
-
-        f = open('log.txt', 'a')
-        f.write('\n{}\n'.format(datetime.datetime.now()))
+        log.info("Checking %s domains..." % len(domains))
 
         # Try to get whois information for domain to see if it is available
         for domain in enumerate(domains):
-            print("[" + str(domain[0] + 1) + "/" + str(len(domains)) + "] " +
-                  domain[1], end=" -> ", flush=True)
             status = self.check_domain(domain[1])
+            result = ''
             if status == 'not_available':
-                print("\033[31mnot available\033[0m")
-                f.write('{} is not available\n'.format(domain[1]))
+                result = '\033[31mnot available\033[0m'
             elif status == 'available':
-                print("\033[32mavailable\033[0m")
-                f.write('{} is available\n'.format(domain[1]))
+                result = '\033[32mavailable\033[0m'
             elif status == 'throttled':
-                print('throttled')
+                result = 'throttled'
             elif status == 'unknown':
-                print("\033[33munknown\033[0m")
-                f.write('{} might be available\n'.format(domain[1]))
+                result = '\033[33munknown\033[0m'
             elif status == 'error':
-                print('error')
+                result = 'error'
             elif status == 'timeout':
-                print('timeout')
+                result = 'timeout'
 
+            msg = '[{}/{}] {} -> {}'.format(str(domain[0] + 1),
+                                            str(len(domains)), domain[1],
+                                            result)
+            log.info(msg)
             time.sleep(self.delay)
-
-        f.close()
 
     def check_domain(self, domain):
         """Do a whois request on domain. Return the domain's status."""
@@ -108,7 +104,7 @@ class DomainChecker():
             elif 'exceeded' in output:
                 return 'throttled'
 
-            print(process.stdout)
+            log.debug(process.stdout)
             return 'unknown'
         except subprocess.CalledProcessError:
             return 'error'
@@ -120,6 +116,9 @@ def main(argv):
     parser = argparse.ArgumentParser(
         description="""Finds domain hacks and tests them to see if
         they are registered."""
+    )
+    parser.add_argument(
+        '-v', '--verbose', help="verbose mode", action='store_true'
     )
     parser.add_argument(
         "min",
@@ -150,6 +149,24 @@ def main(argv):
     args = parser.parse_args(argv)
     chars = "abcdefghijklmnopqrstuvwxyz"
 
+    log.basicConfig(format="%(asctime)s %(levelname)s: %(message)s",
+                    level=log.DEBUG, datefmt='%d-%m-%y %H:%M:%S',
+                    filename='log.txt', filemode='w')
+    console = log.StreamHandler()
+    
+    if args.verbose:
+        log.info("Verbose output.")
+        console.setLevel(log.DEBUG)
+        formatter = log.Formatter('%(asctime)s %(levelname)s: %(message)s',
+                                  datefmt='%d-%m-%y %H:%M:%S')
+        console.setFormatter(formatter)
+    else:
+        console.setLevel(log.INFO)
+        formatter = log.Formatter('%(message)s')
+        console.setFormatter(formatter)
+
+    log.getLogger('').addHandler(console)
+
     domain_checker = DomainChecker(args.min, args.max, args.file,
                                    chars, args.delay)
     domains = []
@@ -159,13 +176,13 @@ def main(argv):
         if args.tld in tld_list:
             tld_list = [args.tld]
         else:
-            print('error: invalid TLD')
+            log.error('error: invalid TLD')
             exit(1)
     
     if args.tld == 'any':
-        print('Finding words ending with any TLD in {}.'.format(args.file))
+        log.info('Finding words ending with any TLD in {}.'.format(args.file))
     else:
-        print('Finding words ending with .{} TLD in {}.'.format(args.tld, args.file))
+        log.info('Finding words ending with .{} TLD in {}.'.format(args.tld, args.file))
     
     with open(args.file, 'r') as f:
         lines = f.read().splitlines()
@@ -177,14 +194,15 @@ def main(argv):
                     domains.append(domain)
     
     update_progress_bar(len(lines), len(lines))
-    print('Found {} possible domains.'.format(len(domains)))
+    log.info('Found {} possible domains.'.format(len(domains)))
     domain_checker.check_domains(domains)
+    log.shutdown()
 
 if __name__ == "__main__":
     try:
         main(sys.argv[1:])
     except KeyboardInterrupt:
-        print('Interrupted by user.')
+        log.info('Interrupted by user.')
         try:
             sys.exit(0)
         except SystemExit:
