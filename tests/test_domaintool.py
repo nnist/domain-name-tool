@@ -53,7 +53,7 @@ class DomaintoolTest(unittest.TestCase):
                                      stderr=subprocess.PIPE, check=True)
             assert process.returncode == 0
             process_output = process.stdout.split(b'\n')
-            assert process_output[0] == b'usage: domaintool.py [-h] [-v] [--tld TLD] [-f FILE] [-d DELAY] min max'
+            assert process_output[0] == b'usage: domaintool.py [-h] [-v] [--tld TLD] [-f WORDLIST] [-d DELAY] min max'
 
     def test_cli(self):
         """Test the cli."""
