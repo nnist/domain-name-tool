@@ -1,4 +1,4 @@
-"""Get domain hacks from a dictionary and test them for availability."""
+"""Get domain hacks from a wordlist and test them for availability."""
 # https://en.wikipedia.org/wiki/Domain_hack
 import datetime
 import argparse
@@ -22,12 +22,13 @@ def update_progress_bar(current, total):
     sys.stdout.flush()
 
 class DomainChecker():
-    """Get domain hacks from a dictionary and test them for availability."""
-    def __init__(self, length_min, length_max, dict_file="dictionary.txt",
+    """Get domain hacks from a wordlist and test them for availability."""
+    def __init__(self, length_min, length_max,
+                 wordlist="domaintool/data/wordlists/english.txt",
                  chars="abcdefghijklmnopqrstuvwxyz", delay=2.0):
         self.length_min = length_min
         self.length_max = length_max
-        self.dict_file = dict_file
+        self.wordlist = wordlist
         self.chars = chars
         self.delay = delay
 
@@ -112,7 +113,7 @@ class DomainChecker():
             return 'timeout'
 
 def main(argv):
-    """Get domain hacks from a dictionary and test them for availability."""
+    """Get domain hacks from a wordlist and test them for availability."""
     parser = argparse.ArgumentParser(
         description="""Finds domain hacks and tests them to see if
         they are registered."""
@@ -137,8 +138,8 @@ def main(argv):
     )
     parser.add_argument(
         "-f",
-        help="Dictionary file to use",
-        dest="file", default="dictionary.txt"
+        help="Wordlist to use",
+        dest="wordlist", default="domaintool/data/wordlists/english.txt"
     )
     parser.add_argument(
         "-d",
@@ -167,7 +168,7 @@ def main(argv):
 
     log.getLogger('').addHandler(console)
 
-    domain_checker = DomainChecker(args.min, args.max, args.file,
+    domain_checker = DomainChecker(args.min, args.max, args.wordlist,
                                    chars, args.delay)
     domains = []
     
@@ -179,12 +180,13 @@ def main(argv):
             log.error('error: invalid TLD')
             exit(1)
     
+    filename = os.path.basename(args.wordlist)
     if args.tld == 'any':
-        log.info('Finding words ending with any TLD in {}.'.format(args.file))
+        log.info('Finding words ending with any TLD in {}.'.format(filename))
     else:
-        log.info('Finding words ending with .{} TLD in {}.'.format(args.tld, args.file))
+        log.info('Finding words ending with .{} TLD in {}.'.format(args.tld, filename))
     
-    with open(args.file, 'r') as f:
+    with open(args.wordlist, 'r') as f:
         lines = f.read().splitlines()
         for line in enumerate(lines):
             domains_ = domain_checker.get_domains(line[1], tld_list)

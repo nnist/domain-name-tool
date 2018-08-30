@@ -67,5 +67,5 @@ class DomaintoolTest(unittest.TestCase):
             
             with open('log.txt', 'r') as f:
                 lines = f.read().splitlines()
-                assert 'INFO: Finding words ending with .be TLD in dictionary.txt.' in lines[0]
+                assert 'INFO: Finding words ending with .be TLD in english.txt.' in lines[0]
                 assert 'INFO: Checking 9 domains...' in lines[2]
