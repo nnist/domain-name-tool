@@ -17,15 +17,15 @@ class DomaintoolTest(unittest.TestCase):
         assert domain_checker.check_domain('ado.be') == 'not_available'
         assert domain_checker.check_domain('jhgtyasjkhjdffd.be') == 'available'
     
-    def test_check_domains(self):
-        """Test the check_domains method."""
-        pass
-        #with patch('sys.stdout', new=StringIO()) as output:
-        #    domain_checker = DomainChecker(13, 13, delay=0.1)
-        #    domains = domain_checker.get_domains(['be'])
-        #    domain_checker.check_domains(domains)
-        #    output = output.getvalue().split('\n')
-        #    assert output[0] == 'Checking 7 domains...'
+    def test_check_domains_returns_correct_results(self):
+        domain_checker = DomainChecker(3, 4, delay=1.5)
+
+        domains = ['ab.be', 'ado.be', 'foredescri.be']
+        results = domain_checker.check_domains(domains)
+        expected_results = [('ab.be', 'not_available'),
+                           ('ado.be', 'not_available'),
+                           ('foredescri.be', 'available')]
+        assert results == expected_results
     
     def test_get_tld_list_returns_list_of_proper_length(self):
         domain_checker = DomainChecker(3, 4, delay=1.5)
@@ -60,7 +60,7 @@ class DomaintoolTest(unittest.TestCase):
         with patch('sys.stdout', new=StringIO()) as output:
             process = subprocess.run(['python3 domaintool/domaintool.py 13 13 --tld be -d 0.1'],
                                      shell=True,
-                                     timeout=10,
+                                     timeout=30,
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE, check=True)
             assert process.returncode == 0

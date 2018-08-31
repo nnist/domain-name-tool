@@ -62,8 +62,14 @@ class DomainChecker():
         return domains
 
     def check_domains(self, domains):
-        """Check a list of domains for availability."""
+        """Check a list of domains for availability. Return the results in a
+           list.
+           
+           >>> check_domains(['foredescri.be'])
+           [('foredescri.be', 'available')]
+           """
         log.info("Checking %s domains..." % len(domains))
+        results = []
 
         # Try to get whois information for domain to see if it is available
         for domain in enumerate(domains):
@@ -85,8 +91,12 @@ class DomainChecker():
             msg = '[{}/{}] {} -> {}'.format(str(domain[0] + 1),
                                             str(len(domains)), domain[1],
                                             result)
+
+            results.append((domain[1], status))
             log.info(msg)
             time.sleep(self.delay)
+
+        return results
 
     def check_domain(self, domain):
         """Do a whois request on domain. Return the domain's status."""
