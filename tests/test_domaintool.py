@@ -12,7 +12,7 @@ logger.level = log.DEBUG
 
 class DomaintoolTest(unittest.TestCase):
     def setUp(self):
-        self.dc = DomainChecker(3, 4, delay=1.5)
+        self.dc = DomainChecker(delay=1.5)
 
     def test_check_domain(self):
         """Test the check_domain method."""
@@ -52,12 +52,13 @@ class DomaintoolTest(unittest.TestCase):
                                      stderr=subprocess.PIPE, check=True)
             assert process.returncode == 0
             process_output = process.stdout.split(b'\n')
-            assert process_output[0] == b'usage: domaintool.py [-h] [-v] [--tld TLD] [-f WORDLIST] [-d DELAY] min max'
+            assert process_output[0] == b'usage: domaintool.py [-h] [-v] [--min MIN] [--max MAX] [--tld TLD]'
+            assert process_output[1].strip() == b'[-f WORDLIST] [-d DELAY]'
 
     def test_cli(self):
         """Test the cli."""
         with patch('sys.stdout', new=StringIO()) as output:
-            process = subprocess.run(['python3 domaintool/domaintool.py 13 13 --tld be -d 0.1'],
+            process = subprocess.run(['python3 domaintool/domaintool.py --min 13 --max 13 --tld be -d 0.1'],
                                      shell=True,
                                      timeout=30,
                                      stdout=subprocess.PIPE,

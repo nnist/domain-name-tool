@@ -23,7 +23,7 @@ def update_progress_bar(current, total):
 
 class DomainChecker():
     """Get domain hacks from a wordlist and test them for availability."""
-    def __init__(self, length_min, length_max,
+    def __init__(self, length_min=3, length_max=20,
                  wordlist="domaintool/data/wordlists/english.txt",
                  chars="abcdefghijklmnopqrstuvwxyz", delay=2.0):
         self.length_min = length_min
@@ -132,14 +132,14 @@ def main(argv):
         '-v', '--verbose', help="verbose mode", action='store_true'
     )
     parser.add_argument(
-        "min",
+        "--min",
         help="Minimum length of domain",
-        default=4, type=int
+        default=3, type=int
     )
     parser.add_argument(
-        "max",
+        "--max",
         help="Maximum length of domain",
-        default=5, type=int
+        default=20, type=int
     )
     parser.add_argument(
         "--tld",
