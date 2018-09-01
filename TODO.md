@@ -1,4 +1,5 @@
 # Todo
+- Stop hammering whois service, maybe use `mock` library?
 - Add append (non-domain hack) mode; also allow 'website.com' for example
 - Add internet slang wordlist
 - Use terms properly (domain, suffix)
